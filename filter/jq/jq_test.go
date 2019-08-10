@@ -121,12 +121,72 @@ null
 			input:   `{}`,
 			want:    "",
 		}, {
+			desc:    "array_construct_empty",
+			program: `[]`,
+			input:   `true`,
+			want:    `[]`,
+		}, {
 			desc:    "array_construct",
 			program: `[., .]`,
 			input:   `1 2`,
 			want: `
 [1,1]
 [2,2]
+`,
+		}, {
+			desc:    "array_construct_group",
+			program: `[("a","b"),(1,2)]`,
+			input:   `true`,
+			want:    `["a","b",1,2]`,
+		}, {
+			desc:    "object_construct_empty",
+			program: `{}`,
+			input:   `true`,
+			want:    `{}`,
+		}, {
+			desc:    "object_construct",
+			program: `{a:1}`,
+			input:   `true`,
+			want:    `{"a":1}`,
+		}, {
+			desc:    "object_construct_string",
+			program: `{"a":1}`,
+			input:   `true`,
+			want:    `{"a":1}`,
+		}, {
+			desc:    "object_construct_expr",
+			program: `{1:2}`,
+			input:   `true`,
+			wantErr: "expected attribute name or }",
+		}, {
+			desc:    "object_construct_group_not_string",
+			program: `{(1):2}`,
+			input:   `true`,
+			wantErr: "cannot use value",
+		}, {
+			desc:    "object_construct_group",
+			program: `{("a"):1}`,
+			input:   `true`,
+			want:    `{"a":1}`,
+		}, {
+			desc:    "object_construct_trailing_comma",
+			program: `{"a":1,b:2}`,
+			input:   `true`,
+			want:    `{"a":1,"b":2}`,
+		}, {
+			desc:    "object_construct_pipe",
+			program: `{a:1|2,b:3|4}`,
+			input:   `true`,
+			want:    `{"a":2,"b":4}`,
+		}, {
+			desc:    "object_construct_product",
+			program: `{("a","b"):(1,2)}`,
+			input:   `true`,
+			want: `
+{"a":1}
+{"a":2}
+{"b":1}
+{"b":2}
 `,
 		}, {
 			desc:    "array_index",

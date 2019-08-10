@@ -66,6 +66,8 @@ var binaryLevels = []binaryLevel{
 	},
 }
 
+var binaryLevelsWithoutComma = append(binaryLevels[:1:1], binaryLevels[2:]...)
+
 func (p *parser) parseBinary(levels []binaryLevel) sift.Filter {
 	if len(levels) == 0 {
 		return p.parsePrimaryWithPostfix()
@@ -122,6 +124,8 @@ func (p *parser) parsePrimary() sift.Filter {
 		return sift.Literal(sift.Must(sift.ToValue(s)))
 	} else if p.tok == leftBracket {
 		return p.parseArrayConstruct()
+	} else if p.tok == leftBrace {
+		return p.parseObjectConstruct()
 	} else if p.tok == dot {
 		dotOk := true
 		return p.parsePostfixOrDot(id, dotOk)
@@ -247,6 +251,46 @@ func (p *parser) parseArrayConstruct() sift.Filter {
 		}
 		return []sift.Value{arr}, nil
 	}
+}
+
+func (p *parser) parseObjectConstruct() sift.Filter {
+	p.scan() // leftBrace
+
+	var attrs []sift.Filter
+	for p.tok != rightBrace {
+		var key sift.Filter
+		if p.tok == identifier || p.tok == str {
+			_, _, id := p.scan()
+			key = sift.Literal(sift.Must(sift.ToValue(id)))
+		} else if p.tok == leftParen {
+			key = p.parseGroup()
+		} else {
+			p.panicf(p.pos, "expected attribute name or %v; got %v", rightBrace, p.tok)
+		}
+
+		if p.tok != colon {
+			p.panicf(p.pos, "expected %v; got %v", colon, p.tok)
+		}
+		p.scan()
+
+		value := p.parseBinary(binaryLevelsWithoutComma)
+		attrs = append(attrs, key, value)
+
+		if p.tok == comma {
+			p.scan() // trailing comma is okay
+		} else if p.tok != rightBrace {
+			p.panicf(p.pos, "expected %v or %v; got %v", comma, rightBrace, p.tok)
+		}
+	}
+	p.scan() // rightBrace
+
+	if len(attrs) == 0 {
+		return func(sift.Value) ([]sift.Value, error) {
+			empty := sift.Must(sift.ToValue(map[string]sift.Value{}))
+			return []sift.Value{empty}, nil
+		}
+	}
+	return sift.Nary(attrs, constructObject)
 }
 
 func (p *parser) scan() (gotoken.Pos, token, string) {

@@ -318,6 +318,8 @@ func ToValue(v interface{}) (Value, error) {
 			}
 		}
 		return vm, nil
+	case map[string]Value:
+		return attrType(v), nil
 	case []interface{}:
 		l := v
 		ix := make(indexType, len(l))

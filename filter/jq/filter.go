@@ -148,3 +148,19 @@ func iterateOpt(v sift.Value) ([]sift.Value, error) {
 	}
 	return iterate(v)
 }
+
+func constructObject(attrs []sift.Value) ([]sift.Value, error) {
+	if len(attrs)%2 != 0 {
+		panic("constructObject with odd number of operands")
+	}
+	m := make(map[string]sift.Value)
+	for ; len(attrs) > 0; attrs = attrs[2:] {
+		key, ok := sift.AsString(attrs[0])
+		if !ok {
+			return nil, fmt.Errorf("cannot use value %v as object key", attrs[0])
+		}
+		m[key] = attrs[1]
+	}
+	out := sift.Must(sift.ToValue(m))
+	return []sift.Value{out}, nil
+}

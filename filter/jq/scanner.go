@@ -24,6 +24,8 @@ const (
 	pipe
 	leftBracket
 	rightBracket
+	leftBrace
+	rightBrace
 	leftParen
 	rightParen
 	null
@@ -54,6 +56,10 @@ func (t token) String() string {
 		return "["
 	case rightBracket:
 		return "]"
+	case leftBrace:
+		return "{"
+	case rightBrace:
+		return "}"
 	case leftParen:
 		return "("
 	case rightParen:
@@ -157,6 +163,12 @@ Retry:
 
 		case ']':
 			tok = rightBracket
+
+		case '{':
+			tok = leftBrace
+
+		case '}':
+			tok = rightBrace
 
 		case '(':
 			tok = leftParen

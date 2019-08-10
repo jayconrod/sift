@@ -125,6 +125,61 @@ func Ternary(x, y, z Filter, op func(xv, yv, zv Value) ([]Value, error)) Filter 
 	}
 }
 
+// Nary returns a filter that applies all the operand filters to an input value.
+// It then applies the operator to the Cartesian product of the outputs
+// of the operand filters.
+func Nary(operands []Filter, operator func([]Value) ([]Value, error)) Filter {
+	return func(v Value) ([]Value, error) {
+		if len(operands) == 0 {
+			return nil, nil
+		}
+
+		operandValues := make([][]Value, len(operands))
+		var err error
+		for i, operand := range operands {
+			operandValues[i], err = operand(v)
+			if err != nil {
+				return nil, err
+			}
+		}
+
+		index := make([]int, len(operands))
+		nextValues := make([]Value, len(operands))
+		next := func() []Value {
+			if index == nil {
+				return nil
+			}
+
+			for i := 0; i < len(operands); i++ {
+				nextValues[i] = operandValues[i][index[i]]
+			}
+
+			for i := len(operands) - 1; i >= 0; i-- {
+				index[i]++
+				if index[i] < len(operandValues[i]) {
+					break
+				}
+				if i == 0 {
+					index = nil
+				} else {
+					index[i] = 0
+				}
+			}
+			return nextValues
+		}
+
+		var outs []Value
+		for vs := next(); vs != nil; vs = next() {
+			out, err := operator(vs)
+			if err != nil {
+				return nil, err
+			}
+			outs = append(outs, out...)
+		}
+		return outs, nil
+	}
+}
+
 // Concat applies x and y to an input value and returns the outputs of x
 // followed by the outputs of y.
 func Concat(x, y Filter) Filter {
