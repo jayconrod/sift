@@ -63,6 +63,17 @@ var binaryLevels = []binaryLevel{
 			tok:     comma,
 			combine: sift.Concat,
 		},
+	}, {
+		{
+			tok:     star,
+			combine: numOp(func(x, y float64) float64 { return x * y }),
+		}, {
+			tok:     slash,
+			combine: numOp(func(x, y float64) float64 { return x / y }),
+		}, {
+			tok:     percent,
+			combine: numOp(math.Mod),
+		},
 	},
 }
 

@@ -165,6 +165,23 @@ func constructObject(attrs []sift.Value) ([]sift.Value, error) {
 	return []sift.Value{out}, nil
 }
 
+func numOp(op func(xn, yn float64) float64) func(x, y sift.Filter) sift.Filter {
+	return func(x, y sift.Filter) sift.Filter {
+		return sift.Binary(x, y, func(xv, yv sift.Value) ([]sift.Value, error) {
+			xn, ok := sift.AsFloat64(xv)
+			if !ok {
+				return nil, fmt.Errorf("cannot use numeric operator on value %v", xv)
+			}
+			yn, ok := sift.AsFloat64(yv)
+			if !ok {
+				return nil, fmt.Errorf("cannot use numeric operator on value %v", yv)
+			}
+			v := sift.Must(sift.ToValue(op(xn, yn)))
+			return []sift.Value{v}, nil
+		})
+	}
+}
+
 func walk(v sift.Value) ([]sift.Value, error) {
 	var outs []sift.Value
 	var visit func(v sift.Value)

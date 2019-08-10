@@ -322,6 +322,16 @@ null
 3
 `,
 		}, {
+			desc:    "mul_div_mod",
+			program: `12 / 2 % 4`,
+			input:   `true`,
+			want:    `2`,
+		}, {
+			desc:    "mul_strings",
+			program: `"foo" * "bar"`,
+			input:   `true`,
+			wantErr: `cannot use numeric operator`,
+		}, {
 			desc:    "walk",
 			program: `..`,
 			input:   `{"a":[[1],[2]],"b":3}`,

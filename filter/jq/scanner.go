@@ -23,6 +23,9 @@ const (
 	questionMark
 	colon
 	pipe
+	star
+	slash
+	percent
 	leftBracket
 	rightBracket
 	leftBrace
@@ -55,6 +58,12 @@ func (t token) String() string {
 		return ":"
 	case pipe:
 		return "|"
+	case star:
+		return "*"
+	case slash:
+		return "/"
+	case percent:
+		return "%"
 	case leftBracket:
 		return "["
 	case rightBracket:
@@ -163,6 +172,15 @@ Retry:
 
 		case '|':
 			tok = pipe
+
+		case '*':
+			tok = star
+
+		case '/':
+			tok = slash
+
+		case '%':
+			tok = percent
 
 		case '[':
 			tok = leftBracket
