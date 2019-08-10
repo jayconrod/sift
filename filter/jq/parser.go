@@ -44,13 +44,46 @@ func (p *parser) parse() sift.Filter {
 }
 
 func (p *parser) parseExpr() sift.Filter {
-	f := p.parsePrimaryWithPostfix()
-	for p.tok == comma {
-		p.scan()
-		next := p.parsePrimaryWithPostfix()
-		f = sift.Concat(f, next)
+	return p.parseBinary(binaryLevels)
+}
+
+type binaryLevel []struct {
+	tok     token
+	combine func(x, y sift.Filter) sift.Filter
+}
+
+var binaryLevels = []binaryLevel{
+	{
+		{
+			tok:     pipe,
+			combine: sift.Compose,
+		},
+	}, {
+		{
+			tok:     comma,
+			combine: sift.Concat,
+		},
+	},
+}
+
+func (p *parser) parseBinary(levels []binaryLevel) sift.Filter {
+	if len(levels) == 0 {
+		return p.parsePrimaryWithPostfix()
 	}
-	return f
+	x := p.parseBinary(levels[1:])
+Terms:
+	for {
+		for _, op := range levels[0] {
+			if p.tok == op.tok {
+				p.scan()
+				y := p.parseBinary(levels[1:])
+				x = op.combine(x, y)
+				continue Terms
+			}
+		}
+		break
+	}
+	return x
 }
 
 func (p *parser) parsePrimaryWithPostfix() sift.Filter {

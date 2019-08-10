@@ -21,6 +21,7 @@ const (
 	comma
 	questionMark
 	colon
+	pipe
 	leftBracket
 	rightBracket
 	leftParen
@@ -47,6 +48,8 @@ func (t token) String() string {
 		return "?"
 	case colon:
 		return ":"
+	case pipe:
+		return "|"
 	case leftBracket:
 		return "["
 	case rightBracket:
@@ -145,6 +148,9 @@ Retry:
 
 		case ':':
 			tok = colon
+
+		case '|':
+			tok = pipe
 
 		case '[':
 			tok = leftBracket

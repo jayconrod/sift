@@ -9,7 +9,7 @@ import (
 	"go.jayconrod.com/sift/filter/jq"
 )
 
-func TestFilters(t *testing.T) {
+func TestFilter(t *testing.T) {
 	for _, tc := range []struct {
 		desc, program, input, want, wantErr string
 	}{
@@ -247,6 +247,19 @@ null
 			want: `
 "b"
 "a"
+`,
+		}, {
+			desc:    "pipe",
+			program: `.x|.y`,
+			input:   `{"x":{"y":12}}`,
+			want:    `12`,
+		}, {
+			desc:    "comma_pipe_prec",
+			program: `1, 2 | 3`,
+			input:   `null`,
+			want: `
+3
+3
 `,
 		},
 	} {
