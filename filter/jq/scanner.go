@@ -23,6 +23,8 @@ const (
 	colon
 	leftBracket
 	rightBracket
+	leftParen
+	rightParen
 	null
 	true_
 	false_
@@ -49,6 +51,10 @@ func (t token) String() string {
 		return "["
 	case rightBracket:
 		return "]"
+	case leftParen:
+		return "("
+	case rightParen:
+		return ")"
 	case null:
 		return "null"
 	case true_:
@@ -145,6 +151,12 @@ Retry:
 
 		case ']':
 			tok = rightBracket
+
+		case '(':
+			tok = leftParen
+
+		case ')':
+			tok = rightParen
 
 		case -1:
 			tok = eof

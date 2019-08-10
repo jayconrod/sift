@@ -230,6 +230,24 @@ null
 2
 3
 `,
+		}, {
+			desc:    "comma",
+			program: `.[], .[]`,
+			input:   `["a", "b"]`,
+			want: `
+"a"
+"b"
+"a"
+"b"
+`,
+		}, {
+			desc:    "comma_paren",
+			program: `.[(1, 0)]`,
+			input:   `["a", "b"]`,
+			want: `
+"b"
+"a"
+`,
 		},
 	} {
 		t.Run(tc.desc, func(t *testing.T) {

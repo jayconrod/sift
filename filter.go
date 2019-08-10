@@ -125,6 +125,24 @@ func Ternary(x, y, z Filter, op func(xv, yv, zv Value) ([]Value, error)) Filter 
 	}
 }
 
+// Concat applies x and y to an input value and returns the outputs of x
+// followed by the outputs of y.
+func Concat(x, y Filter) Filter {
+	return func(v Value) ([]Value, error) {
+		xvs, err := x(v)
+		if err != nil {
+			return nil, err
+		}
+		yvs, err := y(v)
+		if err != nil {
+			return nil, err
+		}
+		outs := xvs[:len(xvs):len(xvs)]
+		outs = append(outs, yvs...)
+		return outs, nil
+	}
+}
+
 // Sift reads values from dec, transforms them with f, and encodes the results
 // with enc until an error occurs. When dec returns io.EOF, Sift stops and
 // returns nil.

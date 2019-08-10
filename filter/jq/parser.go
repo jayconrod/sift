@@ -44,6 +44,16 @@ func (p *parser) parse() sift.Filter {
 }
 
 func (p *parser) parseExpr() sift.Filter {
+	f := p.parsePrimaryWithPostfix()
+	for p.tok == comma {
+		p.scan()
+		next := p.parsePrimaryWithPostfix()
+		f = sift.Concat(f, next)
+	}
+	return f
+}
+
+func (p *parser) parsePrimaryWithPostfix() sift.Filter {
 	f := p.parsePrimary()
 	return p.parsePostfixOrDot(f, false)
 }
@@ -82,9 +92,21 @@ func (p *parser) parsePrimary() sift.Filter {
 	} else if p.tok == dot {
 		dotOk := true
 		return p.parsePostfixOrDot(id, dotOk)
+	} else if p.tok == leftParen {
+		return p.parseGroup()
 	}
 	p.panicf(p.pos, "expected expression; got %v", p.tok)
 	return nil
+}
+
+func (p *parser) parseGroup() sift.Filter {
+	p.scan()
+	f := p.parseExpr()
+	if p.tok != rightParen {
+		p.panicf(p.pos, "expected %v; got %v", rightParen, p.tok)
+	}
+	p.scan()
+	return f
 }
 
 func (p *parser) parsePostfixOrDot(f sift.Filter, dotOk bool) sift.Filter {
