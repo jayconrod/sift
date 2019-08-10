@@ -18,6 +18,7 @@ const (
 	illegal token = iota
 	eof
 	dot
+	dotDot
 	comma
 	questionMark
 	colon
@@ -44,6 +45,8 @@ func (t token) String() string {
 		return "EOF"
 	case dot:
 		return "."
+	case dotDot:
+		return ".."
 	case comma:
 		return ","
 	case questionMark:
@@ -144,6 +147,9 @@ Retry:
 			if '0' <= s.ch && s.ch <= '9' {
 				lit = "." + s.scanNumber()
 				tok = number
+			} else if s.ch == '.' {
+				s.next()
+				tok = dotDot
 			}
 
 		case ',':

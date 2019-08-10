@@ -321,6 +321,19 @@ null
 3
 3
 `,
+		}, {
+			desc:    "walk",
+			program: `..`,
+			input:   `{"a":[[1],[2]],"b":3}`,
+			want: `
+{"a":[[1],[2]],"b":3}
+[[1],[2]]
+[1]
+1
+[2]
+2
+3
+`,
 		},
 	} {
 		t.Run(tc.desc, func(t *testing.T) {

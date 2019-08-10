@@ -164,3 +164,30 @@ func constructObject(attrs []sift.Value) ([]sift.Value, error) {
 	out := sift.Must(sift.ToValue(m))
 	return []sift.Value{out}, nil
 }
+
+func walk(v sift.Value) ([]sift.Value, error) {
+	var outs []sift.Value
+	var visit func(v sift.Value)
+	visit = func(v sift.Value) {
+		outs = append(outs, v)
+		if attr, ok := v.(sift.Attr); ok {
+			for _, key := range attr.Keys() {
+				value, ok := attr.Attr(key)
+				if ok {
+					visit(value)
+				}
+			}
+		}
+		if index, ok := v.(sift.Index); ok {
+			n := index.Length()
+			for i := 0; i < n; i++ {
+				value, ok := index.Index(i)
+				if ok {
+					visit(value)
+				}
+			}
+		}
+	}
+	visit(v)
+	return outs, nil
+}

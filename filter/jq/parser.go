@@ -122,6 +122,9 @@ func (p *parser) parsePrimary() sift.Filter {
 		s := p.lit
 		p.scan()
 		return sift.Literal(sift.Must(sift.ToValue(s)))
+	} else if p.tok == dotDot {
+		p.scan()
+		return walk
 	} else if p.tok == leftBracket {
 		return p.parseArrayConstruct()
 	} else if p.tok == leftBrace {
