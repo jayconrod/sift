@@ -165,6 +165,131 @@ func constructObject(attrs []sift.Value) ([]sift.Value, error) {
 	return []sift.Value{out}, nil
 }
 
+func neg(v sift.Value) (sift.Value, error) {
+	n, ok := sift.AsFloat64(v)
+	if !ok {
+		return nil, fmt.Errorf("cannot negate value %v", v)
+	}
+	out := sift.Must(sift.ToValue(-n))
+	return out, nil
+}
+
+func binop(op func(xv, yv sift.Value) (sift.Value, error)) func(xf, yf sift.Filter) sift.Filter {
+	return func(xf, yf sift.Filter) sift.Filter {
+		return sift.Binary(xf, yf, func(x, y sift.Value) ([]sift.Value, error) {
+			v, err := op(x, y)
+			if err != nil {
+				return nil, err
+			}
+			return []sift.Value{v}, nil
+		})
+	}
+}
+
+func add(x, y sift.Value) (sift.Value, error) {
+	if xn, ok := sift.AsFloat64(x); ok {
+		yn, ok := sift.AsFloat64(y)
+		if !ok {
+			return nil, fmt.Errorf("cannot use numeric operator on value %v", y)
+		}
+		return sift.Must(sift.ToValue(xn + yn)), nil
+	} else if xs, ok := sift.AsString(x); ok {
+		ys, ok := sift.AsString(y)
+		if !ok {
+			return nil, fmt.Errorf("cannot concatenate string with value %v", y)
+		}
+		return sift.Must(sift.ToValue(xs + ys)), nil
+	} else if xl, ok := x.(sift.Index); ok {
+		yl, ok := y.(sift.Index)
+		if !ok {
+			return nil, fmt.Errorf("cannot concatenate array with value %v", y)
+		}
+		xlen := xl.Length()
+		ylen := yl.Length()
+		outs := make([]sift.Value, 0, xlen+ylen)
+		for xi := 0; xi < xlen; xi++ {
+			elem, ok := xl.Index(xi)
+			if ok {
+				outs = append(outs, elem)
+			}
+		}
+		for yi := 0; yi < ylen; yi++ {
+			elem, ok := yl.Index(yi)
+			if ok {
+				outs = append(outs, elem)
+			}
+		}
+		return sift.Must(sift.ToValue(outs)), nil
+	} else if xa, ok := x.(sift.Attr); ok {
+		ya, ok := y.(sift.Attr)
+		if !ok {
+			return nil, fmt.Errorf("cannot concatenate object with value %v", y)
+		}
+		out := make(map[string]sift.Value)
+		for _, ykey := range ya.Keys() {
+			ykeyStr, ok := sift.AsString(ykey)
+			if !ok {
+				return nil, fmt.Errorf("concatenated map has non-string key %v", ykey)
+			}
+			value, ok := ya.Attr(ykey)
+			if ok {
+				out[ykeyStr] = value
+			}
+		}
+		for _, xkey := range xa.Keys() {
+			xkeyStr, ok := sift.AsString(xkey)
+			if !ok {
+				return nil, fmt.Errorf("concatenated map has non-string key %v", xkey)
+			}
+			value, ok := xa.Attr(xkey)
+			if ok {
+				out[xkeyStr] = value
+			}
+		}
+		return sift.Must(sift.ToValue(out)), nil
+	} else {
+		return nil, fmt.Errorf("cannot use numeric operator on values %v and %v", x, y)
+	}
+}
+
+func sub(x, y sift.Value) (sift.Value, error) {
+	if xn, ok := sift.AsFloat64(x); ok {
+		yn, ok := sift.AsFloat64(y)
+		if !ok {
+			return nil, fmt.Errorf("cannot use numeric operator on value %v", y)
+		}
+		return sift.Must(sift.ToValue(xn - yn)), nil
+	} else if xl, ok := x.(sift.Index); ok {
+		yl, ok := y.(sift.Index)
+		if !ok {
+			return nil, fmt.Errorf("cannot substract value %v from list", y)
+		}
+		xlen := xl.Length()
+		ylen := yl.Length()
+		outs := make([]sift.Value, 0, xlen)
+	Outer:
+		for xi := 0; xi < xlen; xi++ {
+			xelem, ok := xl.Index(xi)
+			if !ok {
+				continue
+			}
+			for yi := 0; yi < ylen; yi++ {
+				yelem, ok := yl.Index(yi)
+				if !ok {
+					continue
+				}
+				if sift.Equal(xelem, yelem) {
+					continue Outer
+				}
+			}
+			outs = append(outs, xelem)
+		}
+		return sift.Must(sift.ToValue(outs)), nil
+	} else {
+		return nil, fmt.Errorf("cannot use numeric operator on values %v and %v", x, y)
+	}
+}
+
 func numOp(op func(xn, yn float64) float64) func(x, y sift.Filter) sift.Filter {
 	return func(x, y sift.Filter) sift.Filter {
 		return sift.Binary(x, y, func(xv, yv sift.Value) ([]sift.Value, error) {

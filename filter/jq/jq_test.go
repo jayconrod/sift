@@ -332,6 +332,56 @@ null
 			input:   `true`,
 			wantErr: `cannot use numeric operator`,
 		}, {
+			desc:    "add_num",
+			program: `1 + 2`,
+			input:   `true`,
+			want:    `3`,
+		}, {
+			desc:    "add_string",
+			program: `"a"+"b"`,
+			input:   `true`,
+			want:    `"ab"`,
+		}, {
+			desc:    "add_array",
+			program: `["a","b"]+["c"]`,
+			input:   `true`,
+			want:    `["a","b","c"]`,
+		}, {
+			desc:    "add_object",
+			program: `{"a":1,"b":2}+{"b":3,"c":4}`,
+			input:   `true`,
+			want:    `{"a":1,"b":2,"c":4}`,
+		}, {
+			desc:    "add_null",
+			program: `"a"+null`,
+			input:   `true`,
+			wantErr: `cannot concatenate string`,
+		}, {
+			desc:    "sub_num",
+			program: `4-2`,
+			input:   `true`,
+			want:    `2`,
+		}, {
+			desc:    `neg`,
+			program: `-2`,
+			input:   `true`,
+			want:    `-2`,
+		}, {
+			desc:    "neg_in_array",
+			program: `[1,-2]`,
+			input:   `true`,
+			want:    `[1,-2]`,
+		}, {
+			desc:    "sub_array",
+			program: `[1, 2, 3] - [2]`,
+			input:   `true`,
+			want:    `[1,3]`,
+		}, {
+			desc:    "sub_string",
+			program: `"foo" - "o"`,
+			input:   `true`,
+			wantErr: `cannot use numeric operator`,
+		}, {
 			desc:    "walk",
 			program: `..`,
 			input:   `{"a":[[1],[2]],"b":3}`,

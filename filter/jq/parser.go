@@ -65,6 +65,14 @@ var binaryLevels = []binaryLevel{
 		},
 	}, {
 		{
+			tok:     plus,
+			combine: binop(add),
+		}, {
+			tok:     minus,
+			combine: binop(sub),
+		},
+	}, {
+		{
 			tok:     star,
 			combine: numOp(func(x, y float64) float64 { return x * y }),
 		}, {
@@ -136,6 +144,10 @@ func (p *parser) parsePrimary() sift.Filter {
 	} else if p.tok == dotDot {
 		p.scan()
 		return walk
+	} else if p.tok == minus {
+		p.scan()
+		f := p.parsePrimary()
+		return sift.Compose(f, sift.MapError(neg))
 	} else if p.tok == leftBracket {
 		return p.parseArrayConstruct()
 	} else if p.tok == leftBrace {

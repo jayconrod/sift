@@ -38,6 +38,18 @@ func Map(f func(Value) Value) Filter {
 	}
 }
 
+// MapError returns a filter that produce a value or an error for each value
+// it consumes, transforming values with the given function.
+func MapError(f func(Value) (Value, error)) Filter {
+	return func(vin Value) ([]Value, error) {
+		vout, err := f(vin)
+		if err != nil {
+			return nil, err
+		}
+		return []Value{vout}, nil
+	}
+}
+
 // FlatMap returns a Filter that produces a slice of values (but no error)
 // for each value it consumes, transforming values with the given function.
 func FlatMap(f func(Value) []Value) Filter {

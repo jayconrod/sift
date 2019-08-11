@@ -26,6 +26,8 @@ const (
 	star
 	slash
 	percent
+	plus
+	minus
 	leftBracket
 	rightBracket
 	leftBrace
@@ -64,6 +66,10 @@ func (t token) String() string {
 		return "/"
 	case percent:
 		return "%"
+	case plus:
+		return "+"
+	case minus:
+		return "-"
 	case leftBracket:
 		return "["
 	case rightBracket:
@@ -140,7 +146,7 @@ Retry:
 			tok = identifier
 		}
 
-	case ch == '-' || ch == '+' || '0' <= ch && ch <= '9':
+	case '0' <= ch && ch <= '9':
 		lit = s.scanNumber()
 		tok = number
 
@@ -181,6 +187,12 @@ Retry:
 
 		case '%':
 			tok = percent
+
+		case '-':
+			tok = minus
+
+		case '+':
+			tok = plus
 
 		case '[':
 			tok = leftBracket
@@ -228,9 +240,6 @@ func (s *scanner) scanIdentifier() string {
 
 func (s *scanner) scanNumber() string {
 	begin := s.offset
-	if s.ch == '-' || s.ch == '+' {
-		s.next()
-	}
 	haveInteger := false
 	for '0' <= s.ch && s.ch <= '9' {
 		haveInteger = true
